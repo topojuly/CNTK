@@ -160,7 +160,7 @@ class ApiSetup(object):
         params = cntk_layer.parameters
         output_channel = params.output
         kernel_size = params.kernel
-        kernel_shape = (output_channel, sanitize_input.shape[0]) + tuple(kernel_size)
+        kernel_shape = (output_channel, sanitize_input.shape[0] / params.group) + tuple(kernel_size)
         kernel_init = None
         if cntk_layer.parameter_tensor:
             kernel_data_tensor = cntk_layer.parameter_tensor[0]
