@@ -124,17 +124,20 @@ class BlockApiSetup(object):
         Return:
             :func:`~cntk.ops.as_block`: the function contains lrn ops
         '''
+        # @BlockFunction('lrn', name)
+        # def _lrn(x):
+        #     x2 = cntk.ops.square(x)
+        #     x2s = cntk.ops.reshape(x2, (1, cntk.InferredDimension), 0, 1)
+        #     w = cntk.ops.constant(alpha / (2 * n - 1), (1, 2 * n - 1, 1, 1), name='W')
+        #     y = cntk.ops.convolution(w, x2s)
+        #     # reshape back to remove the fake singleton reduction dimension
+        #     b = cntk.ops.reshape(y, cntk.InferredDimension, 0, 2)
+        #     den = cntk.ops.exp(beta * cntk.ops.log(k + b))
+        #     apply_x = cntk.ops.element_divide(x, den)
+        #     return apply_x
         @BlockFunction('lrn', name)
         def _lrn(x):
-            x2 = cntk.ops.square(x)
-            x2s = cntk.ops.reshape(x2, (1, cntk.InferredDimension), 0, 1)
-            w = cntk.ops.constant(alpha / (2 * n - 1), (1, 2 * n - 1, 1, 1), name='W')
-            y = cntk.ops.convolution(w, x2s)
-            # reshape back to remove the fake singleton reduction dimension
-            b = cntk.ops.reshape(y, cntk.InferredDimension, 0, 2)
-            den = cntk.ops.exp(beta * cntk.ops.log(k + b))
-            apply_x = cntk.ops.element_divide(x, den)
-            return apply_x
+            return cntk.local_response_normalization(x, int(2 * n - 1), k, alpha, beta)
         return _lrn
 
 
@@ -160,7 +163,7 @@ class ApiSetup(object):
         params = cntk_layer.parameters
         output_channel = params.output
         kernel_size = params.kernel
-        kernel_shape = (output_channel, sanitize_input.shape[0] / params.group) + tuple(kernel_size)
+        kernel_shape = (output_channel, int(sanitize_input.shape[0] / params.group)) + tuple(kernel_size)
         kernel_init = None
         if cntk_layer.parameter_tensor:
             kernel_data_tensor = cntk_layer.parameter_tensor[0]
